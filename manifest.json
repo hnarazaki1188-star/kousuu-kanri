@@ -1,0 +1,18 @@
+{
+  "id": "/",
+  "name": "グッドリーフ 工数管理",
+  "short_name": "工数管理",
+  "description": "作業時間・生産量・人件費を記録する工数管理アプリ",
+  "lang": "ja",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#EDE8D8",
+  "theme_color": "#4B6B3A",
+  "icons": [
+    { "src": "icon.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

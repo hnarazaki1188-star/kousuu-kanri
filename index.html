@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#4B6B3A">
+<link rel="manifest" href="manifest.json">
+<title>グッドリーフ 工数管理</title>
+<style>
+  #kousuu-app {
+    --paper: #EDE8D8;
+    --paper-card: #FBF8F0;
+    --ink: #2B3B2C;
+    --ink-soft: #5B6A54;
+    --moss: #4B6B3A;
+    --moss-dark: #35502A;
+    --soil: #8B6F3F;
+    --rule: #C9BFA0;
+    --rust: #A6432F;
+    --gold: #B8862E;
+    --font-display: 'Zen Old Mincho', serif;
+    --font-body: 'Zen Kaku Gothic New', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+
+    font-family: var(--font-body);
+    background: var(--paper);
+    color: var(--ink);
+    padding: 28px 20px 60px;
+    border-radius: 18px;
+    max-width: 920px;
+    margin: 0 auto;
+    line-height: 1.6;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(75,107,58,0.05) 28px);
+  }
+  #kousuu-app * { box-sizing: border-box; }
+  #kousuu-app .header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 2px solid var(--moss);
+    padding-bottom: 14px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  #kousuu-app .header h1 {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: 0.02em;
+  }
+  #kousuu-app .header .stamp {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--moss-dark);
+    border: 1.5px solid var(--moss-dark);
+    border-radius: 4px;
+    padding: 4px 10px;
+    transform: rotate(-2deg);
+    letter-spacing: 0.05em;
+  }
+  #kousuu-app section {
+    background: var(--paper-card);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 18px;
+  }
+  #kousuu-app h2 {
+    font-family: var(--font-display);
+    font-size: 16px;
+    margin: 0 0 14px;
+    color: var(--moss-dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #kousuu-app .grid-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    align-items: end;
+  }
+  #kousuu-app label {
+    display: block;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
+  #kousuu-app select, #kousuu-app input[type="date"], #kousuu-app input[type="number"], #kousuu-app input[type="text"] {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 14px;
+  }
+  #kousuu-app input:focus, #kousuu-app select:focus {
+    outline: 2px solid var(--moss);
+    outline-offset: 1px;
+  }
+  #kousuu-app button {
+    font-family: var(--font-body);
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    padding: 9px 16px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  #kousuu-app .btn-primary { background: var(--moss); color: #fff; }
+  #kousuu-app .btn-primary:hover { background: var(--moss-dark); }
+  #kousuu-app .btn-ghost { background: transparent; border: 1px solid var(--rule); color: var(--ink-soft); }
+  #kousuu-app .btn-ghost:hover { border-color: var(--moss); color: var(--moss-dark); }
+  #kousuu-app .btn-small { padding: 4px 9px; font-size: 12px; }
+  #kousuu-app .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  #kousuu-app .chip-label { font-size: 11px; color: var(--ink-soft); width: 100%; margin-bottom: -2px; }
+  #kousuu-app .chip {
+    font-size: 12px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--rule);
+    background: #fff; cursor: pointer; color: var(--ink-soft);
+  }
+  #kousuu-app .chip.active { background: var(--moss); border-color: var(--moss); color: #fff; }
+  #kousuu-app table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  #kousuu-app th {
+    text-align: left; font-weight: 600; color: var(--ink-soft); border-bottom: 1.5px solid var(--rule);
+    padding: 6px 8px; font-size: 11px; letter-spacing: 0.03em;
+  }
+  #kousuu-app td { padding: 8px; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+  #kousuu-app td.hours { font-family: var(--font-mono); font-weight: 600; color: var(--moss-dark); }
+  #kousuu-app td.yen { font-family: var(--font-mono); font-weight: 600; color: var(--gold); }
+  #kousuu-app tr:hover td { background: rgba(75,107,58,0.05); }
+  #kousuu-app .del-btn { background: none; border: none; color: var(--rust); cursor: pointer; font-size: 13px; padding: 2px 6px; }
+  #kousuu-app .empty { text-align: center; color: var(--ink-soft); padding: 24px 0; font-size: 13px; }
+  #kousuu-app .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  #kousuu-app .bar-label { width: 96px; font-size: 12px; flex-shrink: 0; color: var(--ink); }
+  #kousuu-app .bar-track { flex: 1; background: rgba(75,107,58,0.1); border-radius: 4px; height: 16px; position: relative; overflow: visible; }
+  #kousuu-app .bar-fill {
+    height: 100%; background: linear-gradient(90deg, var(--moss), #7FA85C); border-radius: 4px;
+    display: flex; align-items: center; transition: width 0.4s ease;
+  }
+  #kousuu-app .bar-fill::after { content: '🌱'; font-size: 12px; position: absolute; right: -2px; top: -3px; }
+  #kousuu-app .bar-value { font-family: var(--font-mono); font-size: 12px; width: 54px; text-align: right; color: var(--ink-soft); flex-shrink: 0; }
+  #kousuu-app .bar-sub { font-size: 11px; color: var(--gold); font-family: var(--font-mono); margin: 0 0 10px 106px; }
+  #kousuu-app .totals-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  #kousuu-app .settings-toggle {
+    font-size: 12px; color: var(--ink-soft); cursor: pointer; text-decoration: underline; background: none; border: none; padding: 0;
+  }
+  #kousuu-app .inline-add { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  #kousuu-app .inline-add input { width: auto; flex: 1; min-width: 100px; }
+  #kousuu-app .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  #kousuu-app .tag-item {
+    display: flex; align-items: center; gap: 4px; background: #fff; border: 1px solid var(--rule);
+    border-radius: 999px; padding: 4px 6px 4px 12px; font-size: 12px;
+  }
+  #kousuu-app .tag-item button { background: none; border: none; color: var(--rust); cursor: pointer; padding: 2px 4px; font-size: 12px; }
+  #kousuu-app .emp-table { width: 100%; margin-top: 8px; }
+  #kousuu-app .emp-table th { font-size: 11px; }
+  #kousuu-app .emp-table td { padding: 5px 6px; }
+  #kousuu-app .emp-table input[type="number"] { width: 90px; padding: 5px 8px; font-size: 13px; }
+  #kousuu-app .loading, #kousuu-app .save-note { font-size: 12px; color: var(--ink-soft); text-align: center; padding: 10px 0; }
+  #kousuu-app .footer-note { font-size: 11px; color: var(--ink-soft); text-align: center; margin-top: 8px; }
+  #kousuu-app .cost-table td.name { display: flex; align-items: center; gap: 6px; }
+  #kousuu-app .cost-note { font-size: 11px; color: var(--ink-soft); margin-top: 10px; }
+  @media (max-width: 560px) {
+    #kousuu-app .totals-cols { grid-template-columns: 1fr; }
+    #kousuu-app .bar-sub { margin-left: 0; }
+    #kousuu-app table, #kousuu-app thead, #kousuu-app tbody, #kousuu-app th, #kousuu-app td, #kousuu-app tr { display: block; }
+    #kousuu-app thead { display: none; }
+    #kousuu-app tr { border-bottom: 2px solid var(--rule); padding: 8px 0; }
+    #kousuu-app td { border: none; padding: 3px 0; display: flex; justify-content: space-between; }
+    #kousuu-app td::before { content: attr(data-label); font-size: 11px; color: var(--ink-soft); }
+    #kousuu-app .emp-table td { display: flex; justify-content: space-between; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div id="kousuu-app">
+  <div class="header">
+    <h1>グッドリーフ 工数管理</h1>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div class="stamp">作業記録簿</div>
+      <button class="btn-ghost btn-small" id="lockToggleBtn">🔒 管理者モード</button>
+    </div>
+  </div>
+
+  <div id="loadingMsg" class="loading">読み込み中...</div>
+
+  <div id="appBody" style="display:none;">
+
+    <section>
+      <h2>📝 作業を記録する</h2>
+      <div class="grid-form">
+        <div>
+          <label for="empSelect">担当者</label>
+          <select id="empSelect"></select>
+        </div>
+        <div>
+          <label for="projSelect">作業内容</label>
+          <select id="projSelect"></select>
+        </div>
+        <div>
+          <label for="prodSelect">製品</label>
+          <select id="prodSelect"></select>
+        </div>
+        <div>
+          <label for="dateInput">日付</label>
+          <input type="date" id="dateInput" />
+        </div>
+        <div>
+          <label for="hoursInput">時間 (h)</label>
+          <input type="number" id="hoursInput" step="0.25" min="0" placeholder="例: 2.5" />
+        </div>
+        <div style="grid-column: 1 / -1;">
+          <label for="memoInput">メモ（任意）</label>
+          <input type="text" id="memoInput" placeholder="例: Aハウス フリルレタス" />
+        </div>
+      </div>
+      <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <button class="btn-primary" id="addEntryBtn">記録する</button>
+        <button class="settings-toggle" id="settingsToggle">担当者・作業項目・製品を編集する</button>
+      </div>
+
+      <div id="settingsPanel" style="display:none; margin-top:16px; border-top:1px dashed var(--rule); padding-top:14px;">
+        <div>
+          <label>担当者（時給を設定すると人件費が自動計算されるもい）</label>
+          <table class="emp-table" id="empTable">
+            <thead><tr><th>名前</th><th>給与形態</th><th>時給(円)</th><th></th></tr></thead>
+            <tbody id="empTableBody"></tbody>
+          </table>
+          <div class="inline-add">
+            <input type="text" id="newEmpName" placeholder="名前" />
+            <select id="newEmpPayType" style="max-width:100px;">
+              <option value="hourly">時給</option>
+              <option value="salary">固定給</option>
+            </select>
+            <input type="number" id="newEmpWage" placeholder="時給(円)" min="0" style="max-width:110px;" />
+            <button class="btn-ghost btn-small" id="addEmpBtn">追加</button>
+          </div>
+        </div>
+        <div style="margin-top:16px;">
+          <label>作業項目を追加</label>
+          <div class="inline-add">
+            <input type="text" id="newProjIcon" placeholder="絵文字" style="max-width:56px; text-align:center;" />
+            <input type="text" id="newProjName" placeholder="作業名（例: 収穫）" />
+            <button class="btn-ghost btn-small" id="addProjBtn">追加</button>
+          </div>
+          <div class="tag-list" id="projTagList"></div>
+        </div>
+        <div style="margin-top:16px;">
+          <label>製品を追加</label>
+          <div class="inline-add">
+            <input type="text" id="newProdIcon" placeholder="絵文字" style="max-width:56px; text-align:center;" />
+            <input type="text" id="newProdName" placeholder="製品名（例: レタス）" />
+            <button class="btn-ghost btn-small" id="addProdBtn">追加</button>
+          </div>
+          <div class="tag-list" id="prodTagList"></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>🏷 生産記録（パック数）</h2>
+      <div class="grid-form">
+        <div>
+          <label for="outputDate">日付</label>
+          <input type="date" id="outputDate" />
+        </div>
+        <div>
+          <label for="outputProdSelect">製品</label>
+          <select id="outputProdSelect"></select>
+        </div>
+        <div>
+          <label for="outputPacks">パック数</label>
+          <input type="number" id="outputPacks" min="0" step="1" placeholder="例: 120" />
+        </div>
+        <div style="grid-column: 1 / -1;">
+          <label for="outputMemo">メモ（任意）</label>
+          <input type="text" id="outputMemo" placeholder="例: 8/15 出荷分" />
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <button class="btn-primary" id="addOutputBtn">記録する</button>
+      </div>
+      <table style="margin-top:14px;">
+        <thead><tr><th>日付</th><th>製品</th><th>パック数</th><th>メモ</th><th></th></tr></thead>
+        <tbody id="outputsBody"></tbody>
+      </table>
+      <div id="outputsEmpty" class="empty" style="display:none;">まだ生産記録がないもい。</div>
+    </section>
+
+    <section>
+      <h2>💰 コスト集計（製品別）</h2>
+      <table class="cost-table">
+        <thead><tr><th>製品</th><th>作業時間</th><th>人件費</th><th>パック数</th><th>1パックあたり人件費</th></tr></thead>
+        <tbody id="costBody"></tbody>
+      </table>
+      <div class="cost-note">※ 人件費は「時給」の担当者のみで計算しているもい（固定給の担当者は対象外、過去の時給変更も反映されない）。フィルターの期間・絞り込みに連動するもい。金額の表示には管理者モードの解除が必要もい。</div>
+    </section>
+
+    <section>
+      <h2>📊 集計（担当者・作業別）</h2>
+      <div class="totals-cols">
+        <div>
+          <div style="font-size:12px; color:var(--ink-soft); margin-bottom:8px;">担当者別（時間・人件費）</div>
+          <div id="empTotals"></div>
+        </div>
+        <div>
+          <div style="font-size:12px; color:var(--ink-soft); margin-bottom:8px;">作業別（時間・人件費）</div>
+          <div id="projTotals"></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>📖 記録一覧</h2>
+      <div class="chip-label">担当者</div>
+      <div class="chip-row" id="empFilterChips"></div>
+      <div class="chip-label">作業</div>
+      <div class="chip-row" id="projFilterChips"></div>
+      <div class="chip-label">製品</div>
+      <div class="chip-row" id="prodFilterChips"></div>
+      <div class="grid-form" style="margin-bottom:12px; grid-template-columns: repeat(auto-fit, minmax(120px,1fr));">
+        <div>
+          <label for="fromDate">開始日</label>
+          <input type="date" id="fromDate" />
+        </div>
+        <div>
+          <label for="toDate">終了日</label>
+          <input type="date" id="toDate" />
+        </div>
+        <div style="align-self:end;">
+          <button class="btn-ghost" id="clearFilterBtn">絞り込みをクリア</button>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr><th>日付</th><th>担当者</th><th>作業</th><th>製品</th><th>時間</th><th>人件費</th><th>メモ</th><th></th></tr>
+        </thead>
+        <tbody id="entriesBody"></tbody>
+      </table>
+      <div id="emptyState" class="empty" style="display:none;">まだ記録がないもい。上のフォームから記録してみて。</div>
+    </section>
+
+    <div class="footer-note">このデータは接続している全員とリアルタイムで共有されるもい</div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getFirestore, collection, doc, addDoc, deleteDoc, setDoc, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAWU3QGlCqQG069BlDNIwVNC7Det_SR0nE",
+  authDomain: "goodleaf-cousuu.firebaseapp.com",
+  projectId: "goodleaf-cousuu",
+  storageBucket: "goodleaf-cousuu.firebasestorage.app",
+  messagingSenderId: "82725917646",
+  appId: "1:82725917646:web:8d1320300e45af79c2919f"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+const auth = getAuth(fbApp);
+
+const entriesCol = collection(db, 'entries');
+const outputsCol = collection(db, 'outputs');
+const settingsRef = doc(db, 'settings', 'main');
+
+const UNASSIGNED_PRODUCT_ID = 'prod5';
+
+const DEFAULT_PROJECTS = [
+  { id: 'p1', icon: '🌱', name: '定植' },
+  { id: 'p2', icon: '🌾', name: '収穫' },
+  { id: 'p3', icon: '🛡️', name: '防除' },
+  { id: 'p4', icon: '📦', name: '出荷・梱包' },
+  { id: 'p5', icon: '🏠', name: 'ハウス管理' },
+  { id: 'p6', icon: '🗂️', name: '事務' },
+];
+
+const DEFAULT_PRODUCTS = [
+  { id: 'prod1', icon: '🥬', name: 'レタス' },
+  { id: 'prod2', icon: '🥗', name: 'ミックスリーフ' },
+  { id: 'prod3', icon: '🌱', name: 'ベビーリーフ' },
+  { id: 'prod4', icon: '🌸', name: '食用花' },
+  { id: UNASSIGNED_PRODUCT_ID, icon: '📎', name: '共通/その他' },
+];
+
+let state = { employees: [], projects: [], products: [], entries: [], outputs: [] };
+let filters = { empId: 'all', projId: 'all', prodId: 'all', from: '', to: '' };
+let settingsLoaded = false, entriesLoaded = false, outputsLoaded = false;
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+function maybeReveal() {
+  if (settingsLoaded && entriesLoaded && outputsLoaded) {
+    document.getElementById('loadingMsg').style.display = 'none';
+    document.getElementById('appBody').style.display = 'block';
+  }
+}
+
+async function saveSettings() {
+  try {
+    await setDoc(settingsRef, {
+      employees: state.employees,
+      projects: state.projects,
+      products: state.products
+    });
+  } catch (e) {
+    console.error('保存に失敗したもい', e);
+    alert('保存に失敗したもい。通信状況を確認してほしいもい。');
+  }
+}
+
+function fmtHours(h) {
+  const n = Math.round(h * 100) / 100;
+  return (n % 1 === 0) ? n.toFixed(0) : n.toString();
+}
+function fmtYen(y) { return '¥' + Math.round(y).toLocaleString('ja-JP'); }
+
+function projectById(id) { return state.projects.find(p => p.id === id); }
+function productById(id) { return state.products.find(p => p.id === id); }
+function employeeById(id) { return state.employees.find(e => e.id === id); }
+
+const PIN_KEY = 'kousuu-admin-pin';
+function isUnlocked() { return sessionStorage.getItem('kousuu-unlocked') === '1'; }
+
+function updateLockButton() {
+  const btn = document.getElementById('lockToggleBtn');
+  btn.textContent = isUnlocked() ? '🔓 管理者モード解除中' : '🔒 管理者モード';
+}
+
+function toggleLock() {
+  if (isUnlocked()) {
+    sessionStorage.removeItem('kousuu-unlocked');
+    updateLockButton();
+    renderAll();
+    return;
+  }
+  const savedPin = localStorage.getItem(PIN_KEY);
+  if (!savedPin) {
+    const newPin = prompt('管理者用のPINをはじめて設定するもい（数字など何でもOK）');
+    if (!newPin) return;
+    localStorage.setItem(PIN_KEY, newPin);
+    sessionStorage.setItem('kousuu-unlocked', '1');
+  } else {
+    const entered = prompt('管理者PINを入力してください');
+    if (entered === null) return;
+    if (entered !== savedPin) { alert('PINが違うもい'); return; }
+    sessionStorage.setItem('kousuu-unlocked', '1');
+  }
+  updateLockButton();
+  renderAll();
+}
+
+function renderSelectors() {
+  const empSelect = document.getElementById('empSelect');
+  const projSelect = document.getElementById('projSelect');
+  const prodSelect = document.getElementById('prodSelect');
+  const outputProdSelect = document.getElementById('outputProdSelect');
+  empSelect.innerHTML = state.employees.length
+    ? state.employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('')
+    : `<option value="">担当者を追加してね</option>`;
+  projSelect.innerHTML = state.projects.map(p => `<option value="${p.id}">${p.icon} ${p.name}</option>`).join('');
+  const prodOptions = state.products.map(p => `<option value="${p.id}">${p.icon} ${p.name}</option>`).join('');
+  prodSelect.innerHTML = prodOptions;
+  outputProdSelect.innerHTML = prodOptions;
+}
+
+function renderEmployeeTable() {
+  const tbody = document.getElementById('empTableBody');
+  const unlocked = isUnlocked();
+  tbody.innerHTML = state.employees.map(e => {
+    const payTypeSelect = `<select data-emp="${e.id}" class="paytype-input">
+      <option value="hourly" ${e.payType !== 'salary' ? 'selected' : ''}>時給</option>
+      <option value="salary" ${e.payType === 'salary' ? 'selected' : ''}>固定給</option>
+    </select>`;
+    let wageCell;
+    if (e.payType === 'salary') {
+      wageCell = `<span style="color:var(--ink-soft); font-size:12px;">対象外</span>`;
+    } else if (!unlocked) {
+      wageCell = `<span style="color:var(--ink-soft); font-size:12px;">🔒 非表示</span>`;
+    } else {
+      wageCell = `<input type="number" min="0" data-emp="${e.id}" class="wage-input" value="${e.wage || 0}">`;
+    }
+    return `<tr>
+      <td data-label="名前">${e.name}</td>
+      <td data-label="給与形態">${payTypeSelect}</td>
+      <td data-label="時給(円)">${wageCell}</td>
+      <td><button data-emp="${e.id}" class="rm-emp del-btn">削除</button></td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="4" style="color:var(--ink-soft); font-size:12px;">まだ登録なし</td></tr>`;
+
+  tbody.querySelectorAll('.paytype-input').forEach(sel => {
+    sel.addEventListener('change', async () => {
+      const emp = employeeById(sel.dataset.emp);
+      if (emp) emp.payType = sel.value;
+      await saveSettings();
+      renderAll();
+    });
+  });
+  tbody.querySelectorAll('.wage-input').forEach(inp => {
+    inp.addEventListener('change', async () => {
+      const emp = employeeById(inp.dataset.emp);
+      if (emp) emp.wage = parseFloat(inp.value) || 0;
+      await saveSettings();
+      renderAll();
+    });
+  });
+  tbody.querySelectorAll('.rm-emp').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      state.employees = state.employees.filter(e => e.id !== btn.dataset.emp);
+      await saveSettings();
+      renderAll();
+    });
+  });
+}
+
+function renderTagLists() {
+  const projTagList = document.getElementById('projTagList');
+  const prodTagList = document.getElementById('prodTagList');
+  projTagList.innerHTML = state.projects.map(p =>
+    `<span class="tag-item">${p.icon} ${p.name}<button data-proj="${p.id}" class="rm-proj">×</button></span>`
+  ).join('');
+  prodTagList.innerHTML = state.products.map(p =>
+    `<span class="tag-item">${p.icon} ${p.name}<button data-prod="${p.id}" class="rm-prod">×</button></span>`
+  ).join('');
+
+  projTagList.querySelectorAll('.rm-proj').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      state.projects = state.projects.filter(p => p.id !== btn.dataset.proj);
+      await saveSettings();
+      renderAll();
+    });
+  });
+  prodTagList.querySelectorAll('.rm-prod').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      state.products = state.products.filter(p => p.id !== btn.dataset.prod);
+      await saveSettings();
+      renderAll();
+    });
+  });
+}
+
+function renderFilterChips() {
+  const empChips = document.getElementById('empFilterChips');
+  const projChips = document.getElementById('projFilterChips');
+  const prodChips = document.getElementById('prodFilterChips');
+  empChips.innerHTML = ['<span class="chip ' + (filters.empId==='all'?'active':'') + '" data-emp="all">全員</span>']
+    .concat(state.employees.map(e => `<span class="chip ${filters.empId===e.id?'active':''}" data-emp="${e.id}">${e.name}</span>`)).join('');
+  projChips.innerHTML = ['<span class="chip ' + (filters.projId==='all'?'active':'') + '" data-proj="all">全作業</span>']
+    .concat(state.projects.map(p => `<span class="chip ${filters.projId===p.id?'active':''}" data-proj="${p.id}">${p.icon} ${p.name}</span>`)).join('');
+  prodChips.innerHTML = ['<span class="chip ' + (filters.prodId==='all'?'active':'') + '" data-prod="all">全製品</span>']
+    .concat(state.products.map(p => `<span class="chip ${filters.prodId===p.id?'active':''}" data-prod="${p.id}">${p.icon} ${p.name}</span>`)).join('');
+
+  empChips.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => { filters.empId = c.dataset.emp; renderAll(); }));
+  projChips.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => { filters.projId = c.dataset.proj; renderAll(); }));
+  prodChips.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => { filters.prodId = c.dataset.prod; renderAll(); }));
+}
+
+function filteredEntries() {
+  return state.entries.filter(en => {
+    if (filters.empId !== 'all' && en.employeeId !== filters.empId) return false;
+    if (filters.projId !== 'all' && en.projectId !== filters.projId) return false;
+    const pid = en.productId || UNASSIGNED_PRODUCT_ID;
+    if (filters.prodId !== 'all' && pid !== filters.prodId) return false;
+    if (filters.from && en.date < filters.from) return false;
+    if (filters.to && en.date > filters.to) return false;
+    return true;
+  }).sort((a, b) => b.date.localeCompare(a.date));
+}
+
+function filteredOutputs() {
+  return state.outputs.filter(o => {
+    if (filters.prodId !== 'all' && o.productId !== filters.prodId) return false;
+    if (filters.from && o.date < filters.from) return false;
+    if (filters.to && o.date > filters.to) return false;
+    return true;
+  }).sort((a, b) => b.date.localeCompare(a.date));
+}
+
+function renderEntries() {
+  const tbody = document.getElementById('entriesBody');
+  const list = filteredEntries();
+  const unlocked = isUnlocked();
+  document.getElementById('emptyState').style.display = list.length ? 'none' : 'block';
+  tbody.innerHTML = list.map(en => {
+    const emp = employeeById(en.employeeId);
+    const proj = projectById(en.projectId);
+    const prod = productById(en.productId || UNASSIGNED_PRODUCT_ID);
+    let costCell;
+    if (emp && emp.payType === 'salary') {
+      costCell = '<span style="color:var(--ink-soft); font-size:12px;">固定給</span>';
+    } else if (!unlocked) {
+      costCell = '🔒';
+    } else {
+      const cost = en.hours * ((emp && emp.wage) ? emp.wage : 0);
+      costCell = fmtYen(cost);
+    }
+    return `<tr>
+      <td data-label="日付">${en.date}</td>
+      <td data-label="担当者">${emp ? emp.name : '(削除済み)'}</td>
+      <td data-label="作業">${proj ? proj.icon + ' ' + proj.name : '(削除済み)'}</td>
+      <td data-label="製品">${prod ? prod.icon + ' ' + prod.name : '(削除済み)'}</td>
+      <td data-label="時間" class="hours">${fmtHours(en.hours)}h</td>
+      <td data-label="人件費" class="yen">${costCell}</td>
+      <td data-label="メモ">${en.memo || ''}</td>
+      <td><button class="del-btn" data-id="${en.id}">削除</button></td>
+    </tr>`;
+  }).join('');
+  tbody.querySelectorAll('.del-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      try { await deleteDoc(doc(db, 'entries', btn.dataset.id)); }
+      catch (e) { console.error(e); alert('削除に失敗したもい'); }
+    });
+  });
+}
+
+function renderOutputs() {
+  const tbody = document.getElementById('outputsBody');
+  const list = filteredOutputs();
+  document.getElementById('outputsEmpty').style.display = list.length ? 'none' : 'block';
+  tbody.innerHTML = list.map(o => {
+    const prod = productById(o.productId);
+    return `<tr>
+      <td data-label="日付">${o.date}</td>
+      <td data-label="製品">${prod ? prod.icon + ' ' + prod.name : '(削除済み)'}</td>
+      <td data-label="パック数">${o.packs}</td>
+      <td data-label="メモ">${o.memo || ''}</td>
+      <td><button class="del-btn" data-id="${o.id}">削除</button></td>
+    </tr>`;
+  }).join('');
+  tbody.querySelectorAll('.del-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      try { await deleteDoc(doc(db, 'outputs', btn.dataset.id)); }
+      catch (e) { console.error(e); alert('削除に失敗したもい'); }
+    });
+  });
+}
+
+function computeCostData(entries) {
+  const empHours = {}, empCost = {}, projHours = {}, projCost = {}, prodHours = {}, prodCost = {};
+  entries.forEach(en => {
+    const emp = employeeById(en.employeeId);
+    const hourly = emp && emp.payType !== 'salary';
+    const wage = (hourly && emp.wage) ? emp.wage : 0;
+    const cost = en.hours * wage;
+    const pid = en.productId || UNASSIGNED_PRODUCT_ID;
+    empHours[en.employeeId] = (empHours[en.employeeId] || 0) + en.hours;
+    empCost[en.employeeId] = (empCost[en.employeeId] || 0) + cost;
+    projHours[en.projectId] = (projHours[en.projectId] || 0) + en.hours;
+    projCost[en.projectId] = (projCost[en.projectId] || 0) + cost;
+    prodHours[pid] = (prodHours[pid] || 0) + en.hours;
+    prodCost[pid] = (prodCost[pid] || 0) + cost;
+  });
+  return { empHours, empCost, projHours, projCost, prodHours, prodCost };
+}
+
+function packsByProduct(outputs) {
+  const m = {};
+  outputs.forEach(o => { m[o.productId] = (m[o.productId] || 0) + (o.packs || 0); });
+  return m;
+}
+
+function renderBarsWithCost(containerId, hoursMap, costMap, nameMap) {
+  const container = document.getElementById(containerId);
+  const arr = Object.entries(hoursMap).sort((a, b) => b[1] - a[1]);
+  if (!arr.length) {
+    container.innerHTML = '<div style="font-size:12px;color:var(--ink-soft);">データなし</div>';
+    return;
+  }
+  const unlocked = isUnlocked();
+  const max = Math.max(...arr.map(a => a[1]));
+  container.innerHTML = arr.map(([id, hours]) => {
+    const pct = max > 0 ? Math.max(6, (hours / max) * 100) : 0;
+    const cost = costMap[id] || 0;
+    const subLine = unlocked ? `<div class="bar-sub">${fmtYen(cost)}</div>` : '';
+    return `<div class="bar-row">
+      <div class="bar-label">${nameMap[id] || '?'}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+      <div class="bar-value">${fmtHours(hours)}h</div>
+    </div>${subLine}`;
+  }).join('');
+}
+
+function renderTotals() {
+  const list = filteredEntries();
+  const { empHours, empCost, projHours, projCost } = computeCostData(list);
+  const empNames = {}; state.employees.forEach(e => empNames[e.id] = e.name);
+  const projNames = {}; state.projects.forEach(p => projNames[p.id] = p.icon + ' ' + p.name);
+  renderBarsWithCost('empTotals', empHours, empCost, empNames);
+  renderBarsWithCost('projTotals', projHours, projCost, projNames);
+}
+
+function renderCostSummary() {
+  const tbody = document.getElementById('costBody');
+  if (!isUnlocked()) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--ink-soft); padding:20px 0;">🔒 管理者モードを解除すると表示されるもい</td></tr>`;
+    return;
+  }
+  const { prodHours, prodCost } = computeCostData(filteredEntries());
+  const packs = packsByProduct(filteredOutputs());
+  tbody.innerHTML = state.products.map(p => {
+    const hours = prodHours[p.id] || 0;
+    const cost = prodCost[p.id] || 0;
+    const pk = packs[p.id] || 0;
+    const perPack = pk > 0 ? fmtYen(cost / pk) : '—';
+    return `<tr>
+      <td data-label="製品" class="name">${p.icon} ${p.name}</td>
+      <td data-label="作業時間" class="hours">${fmtHours(hours)}h</td>
+      <td data-label="人件費" class="yen">${fmtYen(cost)}</td>
+      <td data-label="パック数">${pk || '—'}</td>
+      <td data-label="1パックあたり人件費" class="yen">${perPack}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderAll() {
+  renderSelectors();
+  renderEmployeeTable();
+  renderTagLists();
+  renderFilterChips();
+  renderEntries();
+  renderOutputs();
+  renderCostSummary();
+  renderTotals();
+}
+
+function startListeners() {
+  onSnapshot(settingsRef, (snap) => {
+    if (snap.exists()) {
+      const data = snap.data();
+      state.employees = (data.employees || []).map(e => ({ wage: 0, payType: 'hourly', ...e }));
+      state.projects = (data.projects && data.projects.length) ? data.projects : DEFAULT_PROJECTS;
+      state.products = (data.products && data.products.length) ? data.products : DEFAULT_PRODUCTS;
+    } else {
+      state.employees = [];
+      state.projects = DEFAULT_PROJECTS;
+      state.products = DEFAULT_PRODUCTS;
+      setDoc(settingsRef, { employees: [], projects: DEFAULT_PROJECTS, products: DEFAULT_PRODUCTS }).catch(e => console.error(e));
+    }
+    settingsLoaded = true;
+    maybeReveal();
+    renderAll();
+  }, (err) => {
+    console.error('settings sync error', err);
+    document.getElementById('loadingMsg').textContent = '⚠️ 接続に失敗したもい（ルール未設定の可能性）';
+  });
+
+  onSnapshot(entriesCol, (snap) => {
+    state.entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    entriesLoaded = true;
+    maybeReveal();
+    renderAll();
+  }, (err) => {
+    console.error('entries sync error', err);
+    document.getElementById('loadingMsg').textContent = '⚠️ 接続に失敗したもい（ルール未設定の可能性）';
+  });
+
+  onSnapshot(outputsCol, (snap) => {
+    state.outputs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    outputsLoaded = true;
+    maybeReveal();
+    renderAll();
+  }, (err) => {
+    console.error('outputs sync error', err);
+    document.getElementById('loadingMsg').textContent = '⚠️ 接続に失敗したもい（ルール未設定の可能性）';
+  });
+}
+
+async function init() {
+  document.getElementById('dateInput').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('outputDate').value = new Date().toISOString().slice(0, 10);
+  updateLockButton();
+
+  document.getElementById('lockToggleBtn').addEventListener('click', toggleLock);
+
+  document.getElementById('addEntryBtn').addEventListener('click', async () => {
+    const empId = document.getElementById('empSelect').value;
+    const projId = document.getElementById('projSelect').value;
+    const prodId = document.getElementById('prodSelect').value;
+    const date = document.getElementById('dateInput').value;
+    const hours = parseFloat(document.getElementById('hoursInput').value);
+    const memo = document.getElementById('memoInput').value.trim();
+    if (!empId) { alert('先に担当者を登録してね'); return; }
+    if (!date) { alert('日付を入力してね'); return; }
+    if (!hours || hours <= 0) { alert('時間を入力してね'); return; }
+    try {
+      await addDoc(entriesCol, { employeeId: empId, projectId: projId, productId: prodId, date, hours, memo });
+      document.getElementById('hoursInput').value = '';
+      document.getElementById('memoInput').value = '';
+    } catch (e) { console.error(e); alert('記録の保存に失敗したもい'); }
+  });
+
+  document.getElementById('addOutputBtn').addEventListener('click', async () => {
+    const date = document.getElementById('outputDate').value;
+    const prodId = document.getElementById('outputProdSelect').value;
+    const packs = parseInt(document.getElementById('outputPacks').value, 10);
+    const memo = document.getElementById('outputMemo').value.trim();
+    if (!date) { alert('日付を入力してね'); return; }
+    if (!packs || packs <= 0) { alert('パック数を入力してね'); return; }
+    try {
+      await addDoc(outputsCol, { date, productId: prodId, packs, memo });
+      document.getElementById('outputPacks').value = '';
+      document.getElementById('outputMemo').value = '';
+    } catch (e) { console.error(e); alert('記録の保存に失敗したもい'); }
+  });
+
+  document.getElementById('settingsToggle').addEventListener('click', () => {
+    const panel = document.getElementById('settingsPanel');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  });
+
+  document.getElementById('addEmpBtn').addEventListener('click', async () => {
+    const nameInput = document.getElementById('newEmpName');
+    const wageInput = document.getElementById('newEmpWage');
+    const payTypeInput = document.getElementById('newEmpPayType');
+    const name = nameInput.value.trim();
+    if (!name) return;
+    const payType = payTypeInput.value;
+    const wage = payType === 'salary' ? 0 : (parseFloat(wageInput.value) || 0);
+    state.employees.push({ id: uid(), name, payType, wage });
+    nameInput.value = ''; wageInput.value = ''; payTypeInput.value = 'hourly';
+    await saveSettings();
+    renderAll();
+  });
+
+  document.getElementById('addProjBtn').addEventListener('click', async () => {
+    const iconInput = document.getElementById('newProjIcon');
+    const nameInput = document.getElementById('newProjName');
+    const name = nameInput.value.trim();
+    if (!name) return;
+    const icon = iconInput.value.trim() || '🔸';
+    state.projects.push({ id: uid(), icon, name });
+    iconInput.value = ''; nameInput.value = '';
+    await saveSettings();
+    renderAll();
+  });
+
+  document.getElementById('addProdBtn').addEventListener('click', async () => {
+    const iconInput = document.getElementById('newProdIcon');
+    const nameInput = document.getElementById('newProdName');
+    const name = nameInput.value.trim();
+    if (!name) return;
+    const icon = iconInput.value.trim() || '🔹';
+    state.products.push({ id: uid(), icon, name });
+    iconInput.value = ''; nameInput.value = '';
+    await saveSettings();
+    renderAll();
+  });
+
+  document.getElementById('fromDate').addEventListener('change', (e) => { filters.from = e.target.value; renderAll(); });
+  document.getElementById('toDate').addEventListener('change', (e) => { filters.to = e.target.value; renderAll(); });
+  document.getElementById('clearFilterBtn').addEventListener('click', () => {
+    filters = { empId: 'all', projId: 'all', prodId: 'all', from: '', to: '' };
+    document.getElementById('fromDate').value = '';
+    document.getElementById('toDate').value = '';
+    renderAll();
+  });
+
+  try {
+    await signInAnonymously(auth);
+  } catch (e) {
+    console.error('認証に失敗したもい', e);
+    document.getElementById('loadingMsg').textContent = '⚠️ 認証に失敗したもい。Firebaseコンソールで匿名認証を有効にしてほしいもい。';
+    return;
+  }
+  startListeners();
+}
+
+init();
+</script>
+</body>
+</html>
