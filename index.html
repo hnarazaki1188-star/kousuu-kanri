@@ -226,11 +226,13 @@
 
       <div id="settingsPanel" style="display:none; margin-top:16px; border-top:1px dashed var(--rule); padding-top:14px;">
         <div>
-          <label>担当者（時給を設定すると人件費が自動計算されるもい）</label>
-          <table class="emp-table" id="empTable">
-            <thead><tr><th>名前</th><th>給与形態</th><th>時給(円)</th><th></th></tr></thead>
-            <tbody id="empTableBody"></tbody>
-          </table>
+          <label>担当者（時給を設定すると人件費が自動計算されます）</label>
+          <div id="empTableWrap">
+            <table class="emp-table" id="empTable">
+              <thead><tr><th>名前</th><th>給与形態</th><th>時給(円)</th><th></th></tr></thead>
+              <tbody id="empTableBody"></tbody>
+            </table>
+          </div>
           <div class="inline-add">
             <input type="text" id="newEmpName" placeholder="名前" />
             <select id="newEmpPayType" style="max-width:100px;">
@@ -241,23 +243,26 @@
             <button class="btn-ghost btn-small" id="addEmpBtn">追加</button>
           </div>
         </div>
-        <div style="margin-top:16px;">
-          <label>作業項目を追加</label>
-          <div class="inline-add">
-            <input type="text" id="newProjIcon" placeholder="絵文字" style="max-width:56px; text-align:center;" />
-            <input type="text" id="newProjName" placeholder="作業名（例: 収穫）" />
-            <button class="btn-ghost btn-small" id="addProjBtn">追加</button>
+        <div id="adminOnlySettingsNote" class="cost-note" style="display:none; margin-top:16px;">🔒 担当者一覧の編集、作業項目・製品の追加は管理者モードで表示されます</div>
+        <div id="adminOnlySettings">
+          <div style="margin-top:16px;">
+            <label>作業項目を追加</label>
+            <div class="inline-add">
+              <input type="text" id="newProjIcon" placeholder="絵文字" style="max-width:56px; text-align:center;" />
+              <input type="text" id="newProjName" placeholder="作業名（例: 収穫）" />
+              <button class="btn-ghost btn-small" id="addProjBtn">追加</button>
+            </div>
+            <div class="tag-list" id="projTagList"></div>
           </div>
-          <div class="tag-list" id="projTagList"></div>
-        </div>
-        <div style="margin-top:16px;">
-          <label>製品を追加</label>
-          <div class="inline-add">
-            <input type="text" id="newProdIcon" placeholder="絵文字" style="max-width:56px; text-align:center;" />
-            <input type="text" id="newProdName" placeholder="製品名（例: レタス）" />
-            <button class="btn-ghost btn-small" id="addProdBtn">追加</button>
+          <div style="margin-top:16px;">
+            <label>製品を追加</label>
+            <div class="inline-add">
+              <input type="text" id="newProdIcon" placeholder="絵文字" style="max-width:56px; text-align:center;" />
+              <input type="text" id="newProdName" placeholder="製品名（例: レタス）" />
+              <button class="btn-ghost btn-small" id="addProdBtn">追加</button>
+            </div>
+            <div class="tag-list" id="prodTagList"></div>
           </div>
-          <div class="tag-list" id="prodTagList"></div>
         </div>
       </div>
     </section>
@@ -289,7 +294,7 @@
         <thead><tr><th>日付</th><th>製品</th><th>パック数</th><th>メモ</th><th></th></tr></thead>
         <tbody id="outputsBody"></tbody>
       </table>
-      <div id="outputsEmpty" class="empty" style="display:none;">まだ生産記録がないもい。</div>
+      <div id="outputsEmpty" class="empty" style="display:none;">まだ生産記録がありません。</div>
     </section>
 
     <section>
@@ -298,7 +303,7 @@
         <thead><tr><th>製品</th><th>作業時間</th><th>人件費</th><th>パック数</th><th>1パックあたり人件費</th></tr></thead>
         <tbody id="costBody"></tbody>
       </table>
-      <div class="cost-note">※ 人件費は「時給」の担当者のみで計算しているもい（固定給の担当者は対象外、過去の時給変更も反映されない）。フィルターの期間・絞り込みに連動するもい。金額の表示には管理者モードの解除が必要もい。</div>
+      <div class="cost-note">※ 人件費は「時給」の担当者のみで計算しています（固定給の担当者は対象外、過去の時給変更も反映されません）。フィルターの期間・絞り込みに連動します。金額の表示には管理者モードの解除が必要です。</div>
     </section>
 
     <section>
@@ -342,10 +347,10 @@
         </thead>
         <tbody id="entriesBody"></tbody>
       </table>
-      <div id="emptyState" class="empty" style="display:none;">まだ記録がないもい。上のフォームから記録してみて。</div>
+      <div id="emptyState" class="empty" style="display:none;">まだ記録がありません。上のフォームから記録してみてください。</div>
     </section>
 
-    <div class="footer-note">このデータは接続している全員とリアルタイムで共有されるもい</div>
+    <div class="footer-note">このデータは接続している全員とリアルタイムで共有されます</div>
   </div>
 </div>
 
@@ -413,8 +418,8 @@ async function saveSettings() {
       products: state.products
     });
   } catch (e) {
-    console.error('保存に失敗したもい', e);
-    alert('保存に失敗したもい。通信状況を確認してほしいもい。');
+    console.error('保存に失敗しました', e);
+    alert('保存に失敗しました。通信状況を確認してください。');
   }
 }
 
@@ -445,14 +450,14 @@ function toggleLock() {
   }
   const savedPin = localStorage.getItem(PIN_KEY);
   if (!savedPin) {
-    const newPin = prompt('管理者用のPINをはじめて設定するもい（数字など何でもOK）');
+    const newPin = prompt('管理者用のPINをはじめて設定してください（数字など何でもOK）');
     if (!newPin) return;
     localStorage.setItem(PIN_KEY, newPin);
     sessionStorage.setItem('kousuu-unlocked', '1');
   } else {
     const entered = prompt('管理者PINを入力してください');
     if (entered === null) return;
-    if (entered !== savedPin) { alert('PINが違うもい'); return; }
+    if (entered !== savedPin) { alert('PINが違います'); return; }
     sessionStorage.setItem('kousuu-unlocked', '1');
   }
   updateLockButton();
@@ -476,6 +481,11 @@ function renderSelectors() {
 function renderEmployeeTable() {
   const tbody = document.getElementById('empTableBody');
   const unlocked = isUnlocked();
+
+  document.getElementById('empTableWrap').style.display = unlocked ? 'block' : 'none';
+  document.getElementById('adminOnlySettings').style.display = unlocked ? 'block' : 'none';
+  document.getElementById('adminOnlySettingsNote').style.display = unlocked ? 'none' : 'block';
+
   tbody.innerHTML = state.employees.map(e => {
     const payTypeSelect = `<select data-emp="${e.id}" class="paytype-input">
       <option value="hourly" ${e.payType !== 'salary' ? 'selected' : ''}>時給</option>
@@ -617,7 +627,7 @@ function renderEntries() {
   tbody.querySelectorAll('.del-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
       try { await deleteDoc(doc(db, 'entries', btn.dataset.id)); }
-      catch (e) { console.error(e); alert('削除に失敗したもい'); }
+      catch (e) { console.error(e); alert('削除に失敗しました'); }
     });
   });
 }
@@ -639,7 +649,7 @@ function renderOutputs() {
   tbody.querySelectorAll('.del-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
       try { await deleteDoc(doc(db, 'outputs', btn.dataset.id)); }
-      catch (e) { console.error(e); alert('削除に失敗したもい'); }
+      catch (e) { console.error(e); alert('削除に失敗しました'); }
     });
   });
 }
@@ -701,7 +711,7 @@ function renderTotals() {
 function renderCostSummary() {
   const tbody = document.getElementById('costBody');
   if (!isUnlocked()) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--ink-soft); padding:20px 0;">🔒 管理者モードを解除すると表示されるもい</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--ink-soft); padding:20px 0;">🔒 管理者モードを解除すると表示されます</td></tr>`;
     return;
   }
   const { prodHours, prodCost } = computeCostData(filteredEntries());
@@ -750,7 +760,7 @@ function startListeners() {
     renderAll();
   }, (err) => {
     console.error('settings sync error', err);
-    document.getElementById('loadingMsg').textContent = '⚠️ 接続に失敗したもい（ルール未設定の可能性）';
+    document.getElementById('loadingMsg').textContent = '⚠️ 接続に失敗しました（ルール未設定の可能性があります）';
   });
 
   onSnapshot(entriesCol, (snap) => {
@@ -760,7 +770,7 @@ function startListeners() {
     renderAll();
   }, (err) => {
     console.error('entries sync error', err);
-    document.getElementById('loadingMsg').textContent = '⚠️ 接続に失敗したもい（ルール未設定の可能性）';
+    document.getElementById('loadingMsg').textContent = '⚠️ 接続に失敗しました（ルール未設定の可能性があります）';
   });
 
   onSnapshot(outputsCol, (snap) => {
@@ -770,7 +780,7 @@ function startListeners() {
     renderAll();
   }, (err) => {
     console.error('outputs sync error', err);
-    document.getElementById('loadingMsg').textContent = '⚠️ 接続に失敗したもい（ルール未設定の可能性）';
+    document.getElementById('loadingMsg').textContent = '⚠️ 接続に失敗しました（ルール未設定の可能性があります）';
   });
 }
 
@@ -795,7 +805,7 @@ async function init() {
       await addDoc(entriesCol, { employeeId: empId, projectId: projId, productId: prodId, date, hours, memo });
       document.getElementById('hoursInput').value = '';
       document.getElementById('memoInput').value = '';
-    } catch (e) { console.error(e); alert('記録の保存に失敗したもい'); }
+    } catch (e) { console.error(e); alert('記録の保存に失敗しました'); }
   });
 
   document.getElementById('addOutputBtn').addEventListener('click', async () => {
@@ -809,7 +819,7 @@ async function init() {
       await addDoc(outputsCol, { date, productId: prodId, packs, memo });
       document.getElementById('outputPacks').value = '';
       document.getElementById('outputMemo').value = '';
-    } catch (e) { console.error(e); alert('記録の保存に失敗したもい'); }
+    } catch (e) { console.error(e); alert('記録の保存に失敗しました'); }
   });
 
   document.getElementById('settingsToggle').addEventListener('click', () => {
@@ -867,8 +877,8 @@ async function init() {
   try {
     await signInAnonymously(auth);
   } catch (e) {
-    console.error('認証に失敗したもい', e);
-    document.getElementById('loadingMsg').textContent = '⚠️ 認証に失敗したもい。Firebaseコンソールで匿名認証を有効にしてほしいもい。';
+    console.error('認証に失敗しました', e);
+    document.getElementById('loadingMsg').textContent = '⚠️ 認証に失敗しました。Firebaseコンソールで匿名認証を有効にしてください。';
     return;
   }
   startListeners();
