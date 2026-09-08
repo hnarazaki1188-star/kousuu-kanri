@@ -195,8 +195,8 @@
       <h2>📝 作業を記録する</h2>
       <div class="grid-form">
         <div>
-          <label for="empSelect">担当者</label>
-          <select id="empSelect"></select>
+          <label for="dateInput">日付</label>
+          <input type="date" id="dateInput" />
         </div>
         <div>
           <label for="projSelect">作業内容</label>
@@ -207,12 +207,16 @@
           <select id="prodSelect"></select>
         </div>
         <div>
-          <label for="dateInput">日付</label>
-          <input type="date" id="dateInput" />
+          <label for="headcountInput">人数</label>
+          <input type="number" id="headcountInput" min="1" step="1" placeholder="例: 3" />
         </div>
         <div>
           <label for="hoursInput">作業時間（分）</label>
           <input type="number" id="hoursInput" step="5" min="0" placeholder="例: 150" />
+        </div>
+        <div>
+          <label for="packsInput">パック数（任意）</label>
+          <input type="number" id="packsInput" min="0" step="1" placeholder="例: 120" />
         </div>
         <div style="grid-column: 1 / -1;">
           <label for="memoInput">メモ（任意）</label>
@@ -221,29 +225,16 @@
       </div>
       <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
         <button class="btn-primary" id="addEntryBtn">記録する</button>
-        <button class="settings-toggle" id="settingsToggle">担当者・作業項目・製品を編集する</button>
+        <button class="settings-toggle" id="settingsToggle">時給・作業項目・製品を編集する</button>
       </div>
 
       <div id="settingsPanel" style="display:none; margin-top:16px; border-top:1px dashed var(--rule); padding-top:14px;">
-        <div>
-          <label>担当者（時給を設定すると人件費が自動計算されます）</label>
-          <div id="empTableWrap">
-            <table class="emp-table" id="empTable">
-              <thead><tr><th>名前</th><th>給与形態</th><th>時給(円)</th><th></th></tr></thead>
-              <tbody id="empTableBody"></tbody>
-            </table>
-          </div>
-          <div class="inline-add">
-            <input type="text" id="newEmpName" placeholder="名前" />
-            <select id="newEmpPayType" style="max-width:100px;">
-              <option value="hourly">時給</option>
-              <option value="salary">固定給</option>
-            </select>
-            <input type="number" id="newEmpWage" placeholder="時給(円)" min="0" style="max-width:110px;" />
-            <button class="btn-ghost btn-small" id="addEmpBtn">追加</button>
-          </div>
+        <div id="wageSettingWrap" style="display:none;">
+          <label for="hourlyWageInput">共通時給（円）※人件費の計算に使われます</label>
+          <input type="number" id="hourlyWageInput" min="0" step="10" style="max-width:160px;" />
         </div>
-        <div id="adminOnlySettingsNote" class="cost-note" style="display:none; margin-top:16px;">🔒 担当者一覧の編集、作業項目・製品の追加は管理者モードで表示されます</div>
+        <div id="wageSettingNote" class="cost-note" style="display:none;">🔒 時給の設定は管理者モードで表示されます</div>
+        <div id="adminOnlySettingsNote" class="cost-note" style="display:none; margin-top:16px;">🔒 作業項目・製品の追加は管理者モードで表示されます</div>
         <div id="adminOnlySettings">
           <div style="margin-top:16px;">
             <label>作業項目を追加</label>
@@ -268,62 +259,30 @@
     </section>
 
     <section>
-      <h2>🏷 生産記録（パック数）</h2>
-      <div class="grid-form">
-        <div>
-          <label for="outputDate">日付</label>
-          <input type="date" id="outputDate" />
-        </div>
-        <div>
-          <label for="outputProdSelect">製品</label>
-          <select id="outputProdSelect"></select>
-        </div>
-        <div>
-          <label for="outputPacks">パック数</label>
-          <input type="number" id="outputPacks" min="0" step="1" placeholder="例: 120" />
-        </div>
-        <div style="grid-column: 1 / -1;">
-          <label for="outputMemo">メモ（任意）</label>
-          <input type="text" id="outputMemo" placeholder="例: 8/15 出荷分" />
-        </div>
-      </div>
-      <div style="margin-top:12px;">
-        <button class="btn-primary" id="addOutputBtn">記録する</button>
-      </div>
-      <table style="margin-top:14px;">
-        <thead><tr><th>日付</th><th>製品</th><th>パック数</th><th>メモ</th><th></th></tr></thead>
-        <tbody id="outputsBody"></tbody>
-      </table>
-      <div id="outputsEmpty" class="empty" style="display:none;">まだ生産記録がありません。</div>
-    </section>
-
-    <section>
       <h2>💰 コスト集計（製品別）</h2>
       <table class="cost-table">
-        <thead><tr><th>製品</th><th>作業時間</th><th>人件費</th><th>パック数</th><th>1パックあたり人件費</th></tr></thead>
+        <thead><tr><th>製品</th><th>延べ作業時間</th><th>人件費</th><th>パック数</th><th>1パックあたり人件費</th></tr></thead>
         <tbody id="costBody"></tbody>
       </table>
-      <div class="cost-note">※ 人件費は「時給」の担当者のみで計算しています（固定給の担当者は対象外、過去の時給変更も反映されません）。フィルターの期間・絞り込みに連動します。金額の表示には管理者モードの解除が必要です。</div>
+      <div class="cost-note">※ 人件費は「人数×作業時間×共通時給」で計算しています（実際の個人ごとの時給とは異なります）。フィルターの期間・絞り込みに連動します。金額の表示には管理者モードの解除が必要です。</div>
     </section>
 
     <section>
-      <h2>📊 集計（担当者・作業別）</h2>
+      <h2>📊 集計（作業・製品別）</h2>
       <div class="totals-cols">
         <div>
-          <div style="font-size:12px; color:var(--ink-soft); margin-bottom:8px;">担当者別（時間・人件費）</div>
-          <div id="empTotals"></div>
+          <div style="font-size:12px; color:var(--ink-soft); margin-bottom:8px;">作業別（延べ時間・人件費）</div>
+          <div id="projTotals"></div>
         </div>
         <div>
-          <div style="font-size:12px; color:var(--ink-soft); margin-bottom:8px;">作業別（時間・人件費）</div>
-          <div id="projTotals"></div>
+          <div style="font-size:12px; color:var(--ink-soft); margin-bottom:8px;">製品別（延べ時間・人件費）</div>
+          <div id="prodTotals"></div>
         </div>
       </div>
     </section>
 
     <section>
       <h2>📖 記録一覧</h2>
-      <div class="chip-label">担当者</div>
-      <div class="chip-row" id="empFilterChips"></div>
       <div class="chip-label">作業</div>
       <div class="chip-row" id="projFilterChips"></div>
       <div class="chip-label">製品</div>
@@ -343,7 +302,7 @@
       </div>
       <table>
         <thead>
-          <tr><th>日付</th><th>担当者</th><th>作業</th><th>製品</th><th>時間</th><th>人件費</th><th>メモ</th><th></th></tr>
+          <tr><th>日付</th><th>作業</th><th>製品</th><th>人数</th><th>時間</th><th>パック数</th><th>人件費</th><th>メモ</th><th></th></tr>
         </thead>
         <tbody id="entriesBody"></tbody>
       </table>
@@ -375,7 +334,6 @@ const db = getFirestore(fbApp);
 const auth = getAuth(fbApp);
 
 const entriesCol = collection(db, 'entries');
-const outputsCol = collection(db, 'outputs');
 const settingsRef = doc(db, 'settings', 'main');
 
 const UNASSIGNED_PRODUCT_ID = 'prod5';
@@ -397,14 +355,14 @@ const DEFAULT_PRODUCTS = [
   { id: UNASSIGNED_PRODUCT_ID, icon: '📎', name: '共通/その他' },
 ];
 
-let state = { employees: [], projects: [], products: [], entries: [], outputs: [] };
-let filters = { empId: 'all', projId: 'all', prodId: 'all', from: '', to: '' };
-let settingsLoaded = false, entriesLoaded = false, outputsLoaded = false;
+let state = { hourlyWage: 0, projects: [], products: [], entries: [] };
+let filters = { projId: 'all', prodId: 'all', from: '', to: '' };
+let settingsLoaded = false, entriesLoaded = false;
 
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 
 function maybeReveal() {
-  if (settingsLoaded && entriesLoaded && outputsLoaded) {
+  if (settingsLoaded && entriesLoaded) {
     document.getElementById('loadingMsg').style.display = 'none';
     document.getElementById('appBody').style.display = 'block';
   }
@@ -413,7 +371,7 @@ function maybeReveal() {
 async function saveSettings() {
   try {
     await setDoc(settingsRef, {
-      employees: state.employees,
+      hourlyWage: state.hourlyWage,
       projects: state.projects,
       products: state.products
     });
@@ -422,6 +380,12 @@ async function saveSettings() {
     alert('保存に失敗しました。通信状況を確認してください。');
   }
 }
+
+// 記録1件から実働時間・延べ人時・パック数を取り出す（旧データ形式にも対応）
+function entryHours(en) { return en.minutes != null ? en.minutes / 60 : (en.hours || 0); }
+function entryHeadcount(en) { return en.headcount != null ? en.headcount : 1; }
+function entryPersonHours(en) { return entryHeadcount(en) * entryHours(en); }
+function entryPacks(en) { return en.packs || 0; }
 
 function fmtHours(h) {
   const totalMinutes = Math.round(h * 60);
@@ -435,7 +399,6 @@ function fmtYen(y) { return '¥' + Math.round(y).toLocaleString('ja-JP'); }
 
 function projectById(id) { return state.projects.find(p => p.id === id); }
 function productById(id) { return state.products.find(p => p.id === id); }
-function employeeById(id) { return state.employees.find(e => e.id === id); }
 
 const PIN_KEY = 'kousuu-admin-pin';
 function isUnlocked() { return sessionStorage.getItem('kousuu-unlocked') === '1'; }
@@ -469,71 +432,23 @@ function toggleLock() {
 }
 
 function renderSelectors() {
-  const empSelect = document.getElementById('empSelect');
   const projSelect = document.getElementById('projSelect');
   const prodSelect = document.getElementById('prodSelect');
-  const outputProdSelect = document.getElementById('outputProdSelect');
-  empSelect.innerHTML = state.employees.length
-    ? state.employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('')
-    : `<option value="">担当者を追加してね</option>`;
   projSelect.innerHTML = state.projects.map(p => `<option value="${p.id}">${p.icon} ${p.name}</option>`).join('');
-  const prodOptions = state.products.map(p => `<option value="${p.id}">${p.icon} ${p.name}</option>`).join('');
-  prodSelect.innerHTML = prodOptions;
-  outputProdSelect.innerHTML = prodOptions;
+  prodSelect.innerHTML = state.products.map(p => `<option value="${p.id}">${p.icon} ${p.name}</option>`).join('');
 }
 
-function renderEmployeeTable() {
-  const tbody = document.getElementById('empTableBody');
+function renderWageSetting() {
   const unlocked = isUnlocked();
-
-  document.getElementById('empTableWrap').style.display = unlocked ? 'block' : 'none';
+  document.getElementById('wageSettingWrap').style.display = unlocked ? 'block' : 'none';
+  document.getElementById('wageSettingNote').style.display = unlocked ? 'none' : 'block';
   document.getElementById('adminOnlySettings').style.display = unlocked ? 'block' : 'none';
   document.getElementById('adminOnlySettingsNote').style.display = unlocked ? 'none' : 'block';
 
-  tbody.innerHTML = state.employees.map(e => {
-    const payTypeSelect = `<select data-emp="${e.id}" class="paytype-input">
-      <option value="hourly" ${e.payType !== 'salary' ? 'selected' : ''}>時給</option>
-      <option value="salary" ${e.payType === 'salary' ? 'selected' : ''}>固定給</option>
-    </select>`;
-    let wageCell;
-    if (e.payType === 'salary') {
-      wageCell = `<span style="color:var(--ink-soft); font-size:12px;">対象外</span>`;
-    } else if (!unlocked) {
-      wageCell = `<span style="color:var(--ink-soft); font-size:12px;">🔒 非表示</span>`;
-    } else {
-      wageCell = `<input type="number" min="0" data-emp="${e.id}" class="wage-input" value="${e.wage || 0}">`;
-    }
-    return `<tr>
-      <td data-label="名前">${e.name}</td>
-      <td data-label="給与形態">${payTypeSelect}</td>
-      <td data-label="時給(円)">${wageCell}</td>
-      <td><button data-emp="${e.id}" class="rm-emp del-btn">削除</button></td>
-    </tr>`;
-  }).join('') || `<tr><td colspan="4" style="color:var(--ink-soft); font-size:12px;">まだ登録なし</td></tr>`;
-
-  tbody.querySelectorAll('.paytype-input').forEach(sel => {
-    sel.addEventListener('change', async () => {
-      const emp = employeeById(sel.dataset.emp);
-      if (emp) emp.payType = sel.value;
-      await saveSettings();
-      renderAll();
-    });
-  });
-  tbody.querySelectorAll('.wage-input').forEach(inp => {
-    inp.addEventListener('change', async () => {
-      const emp = employeeById(inp.dataset.emp);
-      if (emp) emp.wage = parseFloat(inp.value) || 0;
-      await saveSettings();
-      renderAll();
-    });
-  });
-  tbody.querySelectorAll('.rm-emp').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      state.employees = state.employees.filter(e => e.id !== btn.dataset.emp);
-      await saveSettings();
-      renderAll();
-    });
-  });
+  const wageInput = document.getElementById('hourlyWageInput');
+  if (document.activeElement !== wageInput) {
+    wageInput.value = state.hourlyWage || 0;
+  }
 }
 
 function renderTagLists() {
@@ -563,38 +478,24 @@ function renderTagLists() {
 }
 
 function renderFilterChips() {
-  const empChips = document.getElementById('empFilterChips');
   const projChips = document.getElementById('projFilterChips');
   const prodChips = document.getElementById('prodFilterChips');
-  empChips.innerHTML = ['<span class="chip ' + (filters.empId==='all'?'active':'') + '" data-emp="all">全員</span>']
-    .concat(state.employees.map(e => `<span class="chip ${filters.empId===e.id?'active':''}" data-emp="${e.id}">${e.name}</span>`)).join('');
   projChips.innerHTML = ['<span class="chip ' + (filters.projId==='all'?'active':'') + '" data-proj="all">全作業</span>']
     .concat(state.projects.map(p => `<span class="chip ${filters.projId===p.id?'active':''}" data-proj="${p.id}">${p.icon} ${p.name}</span>`)).join('');
   prodChips.innerHTML = ['<span class="chip ' + (filters.prodId==='all'?'active':'') + '" data-prod="all">全製品</span>']
     .concat(state.products.map(p => `<span class="chip ${filters.prodId===p.id?'active':''}" data-prod="${p.id}">${p.icon} ${p.name}</span>`)).join('');
 
-  empChips.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => { filters.empId = c.dataset.emp; renderAll(); }));
   projChips.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => { filters.projId = c.dataset.proj; renderAll(); }));
   prodChips.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => { filters.prodId = c.dataset.prod; renderAll(); }));
 }
 
 function filteredEntries() {
   return state.entries.filter(en => {
-    if (filters.empId !== 'all' && en.employeeId !== filters.empId) return false;
     if (filters.projId !== 'all' && en.projectId !== filters.projId) return false;
     const pid = en.productId || UNASSIGNED_PRODUCT_ID;
     if (filters.prodId !== 'all' && pid !== filters.prodId) return false;
     if (filters.from && en.date < filters.from) return false;
     if (filters.to && en.date > filters.to) return false;
-    return true;
-  }).sort((a, b) => b.date.localeCompare(a.date));
-}
-
-function filteredOutputs() {
-  return state.outputs.filter(o => {
-    if (filters.prodId !== 'all' && o.productId !== filters.prodId) return false;
-    if (filters.from && o.date < filters.from) return false;
-    if (filters.to && o.date > filters.to) return false;
     return true;
   }).sort((a, b) => b.date.localeCompare(a.date));
 }
@@ -605,24 +506,16 @@ function renderEntries() {
   const unlocked = isUnlocked();
   document.getElementById('emptyState').style.display = list.length ? 'none' : 'block';
   tbody.innerHTML = list.map(en => {
-    const emp = employeeById(en.employeeId);
     const proj = projectById(en.projectId);
     const prod = productById(en.productId || UNASSIGNED_PRODUCT_ID);
-    let costCell;
-    if (emp && emp.payType === 'salary') {
-      costCell = '<span style="color:var(--ink-soft); font-size:12px;">固定給</span>';
-    } else if (!unlocked) {
-      costCell = '🔒';
-    } else {
-      const cost = en.hours * ((emp && emp.wage) ? emp.wage : 0);
-      costCell = fmtYen(cost);
-    }
+    const costCell = unlocked ? fmtYen(entryPersonHours(en) * (state.hourlyWage || 0)) : '🔒';
     return `<tr>
       <td data-label="日付">${en.date}</td>
-      <td data-label="担当者">${emp ? emp.name : '(削除済み)'}</td>
       <td data-label="作業">${proj ? proj.icon + ' ' + proj.name : '(削除済み)'}</td>
       <td data-label="製品">${prod ? prod.icon + ' ' + prod.name : '(削除済み)'}</td>
-      <td data-label="時間" class="hours">${fmtHours(en.hours)}</td>
+      <td data-label="人数">${entryHeadcount(en)}人</td>
+      <td data-label="時間" class="hours">${fmtHours(entryHours(en))}</td>
+      <td data-label="パック数">${entryPacks(en) || '—'}</td>
       <td data-label="人件費" class="yen">${costCell}</td>
       <td data-label="メモ">${en.memo || ''}</td>
       <td><button class="del-btn" data-id="${en.id}">削除</button></td>
@@ -636,49 +529,26 @@ function renderEntries() {
   });
 }
 
-function renderOutputs() {
-  const tbody = document.getElementById('outputsBody');
-  const list = filteredOutputs();
-  document.getElementById('outputsEmpty').style.display = list.length ? 'none' : 'block';
-  tbody.innerHTML = list.map(o => {
-    const prod = productById(o.productId);
-    return `<tr>
-      <td data-label="日付">${o.date}</td>
-      <td data-label="製品">${prod ? prod.icon + ' ' + prod.name : '(削除済み)'}</td>
-      <td data-label="パック数">${o.packs}</td>
-      <td data-label="メモ">${o.memo || ''}</td>
-      <td><button class="del-btn" data-id="${o.id}">削除</button></td>
-    </tr>`;
-  }).join('');
-  tbody.querySelectorAll('.del-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      try { await deleteDoc(doc(db, 'outputs', btn.dataset.id)); }
-      catch (e) { console.error(e); alert('削除に失敗しました'); }
-    });
-  });
-}
-
 function computeCostData(entries) {
-  const empHours = {}, empCost = {}, projHours = {}, projCost = {}, prodHours = {}, prodCost = {};
+  const projHours = {}, projCost = {}, prodHours = {}, prodCost = {};
   entries.forEach(en => {
-    const emp = employeeById(en.employeeId);
-    const hourly = emp && emp.payType !== 'salary';
-    const wage = (hourly && emp.wage) ? emp.wage : 0;
-    const cost = en.hours * wage;
+    const ph = entryPersonHours(en);
+    const cost = ph * (state.hourlyWage || 0);
     const pid = en.productId || UNASSIGNED_PRODUCT_ID;
-    empHours[en.employeeId] = (empHours[en.employeeId] || 0) + en.hours;
-    empCost[en.employeeId] = (empCost[en.employeeId] || 0) + cost;
-    projHours[en.projectId] = (projHours[en.projectId] || 0) + en.hours;
+    projHours[en.projectId] = (projHours[en.projectId] || 0) + ph;
     projCost[en.projectId] = (projCost[en.projectId] || 0) + cost;
-    prodHours[pid] = (prodHours[pid] || 0) + en.hours;
+    prodHours[pid] = (prodHours[pid] || 0) + ph;
     prodCost[pid] = (prodCost[pid] || 0) + cost;
   });
-  return { empHours, empCost, projHours, projCost, prodHours, prodCost };
+  return { projHours, projCost, prodHours, prodCost };
 }
 
-function packsByProduct(outputs) {
+function packsByProduct(entries) {
   const m = {};
-  outputs.forEach(o => { m[o.productId] = (m[o.productId] || 0) + (o.packs || 0); });
+  entries.forEach(en => {
+    const pid = en.productId || UNASSIGNED_PRODUCT_ID;
+    m[pid] = (m[pid] || 0) + entryPacks(en);
+  });
   return m;
 }
 
@@ -705,11 +575,11 @@ function renderBarsWithCost(containerId, hoursMap, costMap, nameMap) {
 
 function renderTotals() {
   const list = filteredEntries();
-  const { empHours, empCost, projHours, projCost } = computeCostData(list);
-  const empNames = {}; state.employees.forEach(e => empNames[e.id] = e.name);
+  const { projHours, projCost, prodHours, prodCost } = computeCostData(list);
   const projNames = {}; state.projects.forEach(p => projNames[p.id] = p.icon + ' ' + p.name);
-  renderBarsWithCost('empTotals', empHours, empCost, empNames);
+  const prodNames = {}; state.products.forEach(p => prodNames[p.id] = p.icon + ' ' + p.name);
   renderBarsWithCost('projTotals', projHours, projCost, projNames);
+  renderBarsWithCost('prodTotals', prodHours, prodCost, prodNames);
 }
 
 function renderCostSummary() {
@@ -718,8 +588,9 @@ function renderCostSummary() {
     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--ink-soft); padding:20px 0;">🔒 管理者モードを解除すると表示されます</td></tr>`;
     return;
   }
-  const { prodHours, prodCost } = computeCostData(filteredEntries());
-  const packs = packsByProduct(filteredOutputs());
+  const list = filteredEntries();
+  const { prodHours, prodCost } = computeCostData(list);
+  const packs = packsByProduct(list);
   tbody.innerHTML = state.products.map(p => {
     const hours = prodHours[p.id] || 0;
     const cost = prodCost[p.id] || 0;
@@ -727,7 +598,7 @@ function renderCostSummary() {
     const perPack = pk > 0 ? fmtYen(cost / pk) : '—';
     return `<tr>
       <td data-label="製品" class="name">${p.icon} ${p.name}</td>
-      <td data-label="作業時間" class="hours">${fmtHours(hours)}</td>
+      <td data-label="延べ作業時間" class="hours">${fmtHours(hours)}</td>
       <td data-label="人件費" class="yen">${fmtYen(cost)}</td>
       <td data-label="パック数">${pk || '—'}</td>
       <td data-label="1パックあたり人件費" class="yen">${perPack}</td>
@@ -737,11 +608,10 @@ function renderCostSummary() {
 
 function renderAll() {
   renderSelectors();
-  renderEmployeeTable();
+  renderWageSetting();
   renderTagLists();
   renderFilterChips();
   renderEntries();
-  renderOutputs();
   renderCostSummary();
   renderTotals();
 }
@@ -750,14 +620,14 @@ function startListeners() {
   onSnapshot(settingsRef, (snap) => {
     if (snap.exists()) {
       const data = snap.data();
-      state.employees = (data.employees || []).map(e => ({ wage: 0, payType: 'hourly', ...e }));
+      state.hourlyWage = data.hourlyWage || 0;
       state.projects = (data.projects && data.projects.length) ? data.projects : DEFAULT_PROJECTS;
       state.products = (data.products && data.products.length) ? data.products : DEFAULT_PRODUCTS;
     } else {
-      state.employees = [];
+      state.hourlyWage = 0;
       state.projects = DEFAULT_PROJECTS;
       state.products = DEFAULT_PRODUCTS;
-      setDoc(settingsRef, { employees: [], projects: DEFAULT_PROJECTS, products: DEFAULT_PRODUCTS }).catch(e => console.error(e));
+      setDoc(settingsRef, { hourlyWage: 0, projects: DEFAULT_PROJECTS, products: DEFAULT_PRODUCTS }).catch(e => console.error(e));
     }
     settingsLoaded = true;
     maybeReveal();
@@ -776,54 +646,32 @@ function startListeners() {
     console.error('entries sync error', err);
     document.getElementById('loadingMsg').textContent = '⚠️ 接続に失敗しました（ルール未設定の可能性があります）';
   });
-
-  onSnapshot(outputsCol, (snap) => {
-    state.outputs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    outputsLoaded = true;
-    maybeReveal();
-    renderAll();
-  }, (err) => {
-    console.error('outputs sync error', err);
-    document.getElementById('loadingMsg').textContent = '⚠️ 接続に失敗しました（ルール未設定の可能性があります）';
-  });
 }
 
 async function init() {
   document.getElementById('dateInput').value = new Date().toISOString().slice(0, 10);
-  document.getElementById('outputDate').value = new Date().toISOString().slice(0, 10);
   updateLockButton();
 
   document.getElementById('lockToggleBtn').addEventListener('click', toggleLock);
 
   document.getElementById('addEntryBtn').addEventListener('click', async () => {
-    const empId = document.getElementById('empSelect').value;
     const projId = document.getElementById('projSelect').value;
     const prodId = document.getElementById('prodSelect').value;
     const date = document.getElementById('dateInput').value;
+    const headcount = parseInt(document.getElementById('headcountInput').value, 10);
     const minutes = parseInt(document.getElementById('hoursInput').value, 10);
+    const packsRaw = document.getElementById('packsInput').value;
+    const packs = packsRaw ? parseInt(packsRaw, 10) : 0;
     const memo = document.getElementById('memoInput').value.trim();
-    if (!empId) { alert('先に担当者を登録してね'); return; }
     if (!date) { alert('日付を入力してね'); return; }
+    if (!headcount || headcount <= 0) { alert('人数を入力してね'); return; }
     if (!minutes || minutes <= 0) { alert('作業時間を入力してね'); return; }
-    const hours = minutes / 60;
     try {
-      await addDoc(entriesCol, { employeeId: empId, projectId: projId, productId: prodId, date, hours, memo });
+      await addDoc(entriesCol, { projectId: projId, productId: prodId, date, headcount, minutes, packs, memo });
+      document.getElementById('headcountInput').value = '';
       document.getElementById('hoursInput').value = '';
+      document.getElementById('packsInput').value = '';
       document.getElementById('memoInput').value = '';
-    } catch (e) { console.error(e); alert('記録の保存に失敗しました'); }
-  });
-
-  document.getElementById('addOutputBtn').addEventListener('click', async () => {
-    const date = document.getElementById('outputDate').value;
-    const prodId = document.getElementById('outputProdSelect').value;
-    const packs = parseInt(document.getElementById('outputPacks').value, 10);
-    const memo = document.getElementById('outputMemo').value.trim();
-    if (!date) { alert('日付を入力してね'); return; }
-    if (!packs || packs <= 0) { alert('パック数を入力してね'); return; }
-    try {
-      await addDoc(outputsCol, { date, productId: prodId, packs, memo });
-      document.getElementById('outputPacks').value = '';
-      document.getElementById('outputMemo').value = '';
     } catch (e) { console.error(e); alert('記録の保存に失敗しました'); }
   });
 
@@ -832,16 +680,8 @@ async function init() {
     panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
   });
 
-  document.getElementById('addEmpBtn').addEventListener('click', async () => {
-    const nameInput = document.getElementById('newEmpName');
-    const wageInput = document.getElementById('newEmpWage');
-    const payTypeInput = document.getElementById('newEmpPayType');
-    const name = nameInput.value.trim();
-    if (!name) return;
-    const payType = payTypeInput.value;
-    const wage = payType === 'salary' ? 0 : (parseFloat(wageInput.value) || 0);
-    state.employees.push({ id: uid(), name, payType, wage });
-    nameInput.value = ''; wageInput.value = ''; payTypeInput.value = 'hourly';
+  document.getElementById('hourlyWageInput').addEventListener('change', async (e) => {
+    state.hourlyWage = parseFloat(e.target.value) || 0;
     await saveSettings();
     renderAll();
   });
@@ -873,7 +713,7 @@ async function init() {
   document.getElementById('fromDate').addEventListener('change', (e) => { filters.from = e.target.value; renderAll(); });
   document.getElementById('toDate').addEventListener('change', (e) => { filters.to = e.target.value; renderAll(); });
   document.getElementById('clearFilterBtn').addEventListener('click', () => {
-    filters = { empId: 'all', projId: 'all', prodId: 'all', from: '', to: '' };
+    filters = { projId: 'all', prodId: 'all', from: '', to: '' };
     document.getElementById('fromDate').value = '';
     document.getElementById('toDate').value = '';
     renderAll();
